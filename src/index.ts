@@ -23,20 +23,13 @@ export function buildOfflineContractInstance(abiJson: Artifact, dataMap: any) {
       for (const param of abi.params) {
         if (data[param.name] !== undefined) {
           if (param.type === 'int') {
-            if (typeof data[param.name] === 'number' || typeof data[param.name] === 'bigint') {
-              params.push(BigInt(data[param.name]));
-            } else {
-              //don't use this for single type
-              //if (param.type === 'bytes'){
-              //  params.push(BigInt(data[param.name]));
-              //}
-              //support bigint of a buffer
-              // params.push(byteString2Int(data[param.name].toString("hex")));
-            }
+            //convert number, string, bigint to bigint
+            params.push(BigInt(data[param.name]));
           } else if (param.type === 'bytes') {
             params.push(getValidatedHexString(data[param.name]));
           } else {
             const r = parseAbiType(param.type);
+            //fill array with default value if length is not enough
             if (r.length > 0 && Array.isArray(data[param.name])) {
               const values = data[param.name].slice(0, r.length);
               if (r.type === 'int') {
@@ -61,6 +54,7 @@ export function buildOfflineContractInstance(abiJson: Artifact, dataMap: any) {
             }
           }
         } else {
+          //push default value
           if (param.type === 'int') {
             params.push(0n);
           } else if (param.type === 'bool') {
